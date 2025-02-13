@@ -6,7 +6,6 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../scripts')))
 
-# Agora os imports dos scripts devem funcionar corretamente
 from scripts.captura_dados import captura_quantidade_dados
 from scripts.processamento import mover_para_raw
 from scripts.limpeza_dados import limpar_e_validar_dados

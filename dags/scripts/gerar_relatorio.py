@@ -14,6 +14,9 @@ def gerar_relatorio():
     if os.path.exists(trusted_path):
         df = pd.read_csv(trusted_path)
 
+        # ✅ Converter 'date_of_interest' para datetime
+        df['date_of_interest'] = pd.to_datetime(df['date_of_interest'], errors='coerce')
+
         # 📊 Criando um resumo estatístico
         resumo = df.groupby(df['date_of_interest'].dt.to_period("M")).agg(
             total_casos=('case_count', 'sum'),
