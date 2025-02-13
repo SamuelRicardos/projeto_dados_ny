@@ -1,59 +1,48 @@
-import pandas as pd
 from datetime import datetime
-from airflow.operators.python import PythonOperator, BranchPythonOperator
-from airflow.operators.bash import BashOperator
+from airflow.operators.python import PythonOperator
 from airflow import DAG
-import requests
-import json
+
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../scripts')))
+
+# Agora os imports dos scripts devem funcionar corretamente
+from scripts.captura_dados import captura_quantidade_dados
+from scripts.processamento import mover_para_raw
+from scripts.limpeza_dados import limpar_e_validar_dados
+from scripts.gerar_relatorio import gerar_relatorio
 
 dag = DAG(
-    'tutorial_dag_2',
+    'dados_covid_ny',
     start_date=datetime(2021, 12, 1),
     schedule_interval='30 * * * *',
     catchup=False
 )
 
-def captura_conta_dados(**kwargs):
-    url = "https://data.cityofnewyork.us/resource/rc75-m7u3.json"
-    response = requests.get(url)
-    df = pd.DataFrame(json.loads(response.content))
-    qtd = len(df.index)
-    kwargs['ti'].xcom_push(key='qtd', value=qtd)
-
-
-captura_conta_dados = PythonOperator(
-    task_id='captura_conta_dados',
-    python_callable=captura_conta_dados,
+task_captura_quantidade_dados = PythonOperator(
+    task_id='captura_quantidade_dados',
+    python_callable=captura_quantidade_dados,
     provide_context=True,
     dag=dag
 )
 
-def e_valida(**kwargs):
-    ti = kwargs['ti']
-    qtd = ti.xcom_pull(task_ids='captura_conta_dados', key='qtd')
-    
-    if qtd > 1000:
-        return 'valido'
-    return 'nvalido'
-
-
-e_valida = BranchPythonOperator(
-    task_id='e_valida',
-    python_callable=e_valida,
-    provide_context=True,
+task_mover_para_raw = PythonOperator(
+    task_id='mover_para_raw',
+    python_callable=mover_para_raw,
     dag=dag
 )
 
-valido = BashOperator(
-    task_id='valido',
-    bash_command="echo 'Quantidade OK'",
+task_limpar_e_validar = PythonOperator(
+    task_id='limpar_e_validar',
+    python_callable=limpar_e_validar_dados,
     dag=dag
 )
 
-nvalido = BashOperator(
-    task_id='nvalido',
-    bash_command="echo 'Quantidade não OK'",
+task_gerar_relatorio = PythonOperator(
+    task_id='gerar_relatorio',
+    python_callable=gerar_relatorio,
     dag=dag
 )
 
-captura_conta_dados >> e_valida >> [valido, nvalido]
+# Definição do fluxo de tarefas
+task_captura_quantidade_dados >> task_mover_para_raw >> task_limpar_e_validar >> task_gerar_relatorio
