@@ -1,5 +1,5 @@
-import os
 import pandas as pd
+import os
 
 BASE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../datalake'))
 
@@ -10,8 +10,9 @@ def mover_para_raw():
     os.makedirs(os.path.join(BASE_PATH, 'raw'), exist_ok=True)
 
     if os.path.exists(landing_path):
-
         df = pd.read_csv(landing_path)
+
+        df['date_of_interest'] = pd.to_datetime(df['date_of_interest'])
 
         df.to_parquet(raw_path, engine="pyarrow", index=False)
 
