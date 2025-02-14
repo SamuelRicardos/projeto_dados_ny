@@ -43,5 +43,4 @@ task_gerar_relatorio = PythonOperator(
     dag=dag
 )
 
-# Definição do fluxo de tarefas
 task_captura_quantidade_dados >> task_mover_para_raw >> task_limpar_e_validar >> task_gerar_relatorio
