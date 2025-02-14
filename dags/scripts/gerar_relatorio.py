@@ -5,14 +5,14 @@ import pandas as pd
 BASE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../datalake'))
 
 def gerar_relatorio():
-    trusted_path = os.path.join(BASE_PATH, 'trusted', 'dados_covid_ny.csv')
-    business_path = os.path.join(BASE_PATH, 'business', 'relatorio_covid_ny.csv')
+    trusted_path = os.path.join(BASE_PATH, 'trusted', 'dados_covid_ny.parquet')
+    business_path = os.path.join(BASE_PATH, 'business', 'relatorio_covid_ny.parquet')
 
     # Criando diretório business se não existir
     os.makedirs(os.path.join(BASE_PATH, 'business'), exist_ok=True)
 
     if os.path.exists(trusted_path):
-        df = pd.read_csv(trusted_path)
+        df = pd.read_parquet(trusted_path)
 
         # ✅ Converter 'date_of_interest' para datetime
         df['date_of_interest'] = pd.to_datetime(df['date_of_interest'], errors='coerce')
@@ -24,7 +24,7 @@ def gerar_relatorio():
         ).reset_index()
 
         # Salvando o relatório final na camada business
-        resumo.to_csv(business_path, index=False)
+        resumo.to_parquet(business_path, index=False)
         print(f"Relatório gerado na camada 'business': {business_path}")
     else:
         print("Arquivo não encontrado na camada 'trusted'")
